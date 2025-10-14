@@ -12,9 +12,13 @@ int main() {
 
     init_curl();
 
-    auto contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
+    std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
 
     cleanup_curl();
+
+    // for (auto& item: contracts) {
+    //     std::cout << item.ticker << "\n";
+    // }
 
     return 0;
 }
