@@ -14,11 +14,23 @@ int main() {
 
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
 
+    std::map<long long, int> volumes = get_volume(contracts[0].ticker, date, apiKey);
+
     cleanup_curl();
 
     // for (auto& item: contracts) {
     //     std::cout << item.ticker << "\n";
     // }
+
+    std::vector<std::map<long long, int>> agg;
+    agg.reserve(contracts.size());
+
+    for (auto& item: contracts) {
+        agg.push_back(get_volume(item.ticker, date, apiKey));
+    }
+
+    std::cout << contracts.size() << "\n";
+    std::cout << agg.size() << "\n";
 
     return 0;
 }

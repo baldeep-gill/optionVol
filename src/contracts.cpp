@@ -9,7 +9,7 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
 
     std::ostringstream ss;
     ss  << "https://api.polygon.io/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
-        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=200&sort=strike_price&apiKey=" << apiKey;
+        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=500&sort=strike_price&apiKey=" << apiKey;
     std::string url = ss.str();
 
     // std::cout << "URL: " << url << "\n";
@@ -18,13 +18,13 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
         std::string response = http_get(url);
 
         if (response.empty()) {
-            std::cerr << "Empty response from Polygon\n";
+            std::cerr << "Empty response from Polygon (get_contracts)\n";
             return contracts;
         }
 
         nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
         if (data.is_discarded()) {
-            std::cerr << "Failed to parse JSON response\n";
+            std::cerr << "Failed to parse JSON response (get_contracts)\n";
             return contracts;
         }
 
@@ -48,7 +48,38 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
         }
     }
 
-    std::cout << contracts.size() << " contracts fetched." << "\n";
+    // std::cout << contracts.size() << " contracts fetched." << "\n";
 
     return contracts;
+}
+
+std::map<long long, int> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
+    std::map<long long, int> volumes;
+
+    std::ostringstream ss;
+    ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc&apiKey=" << apiKey;
+    std::string url = ss.str();
+
+    std::string response = http_get(url);
+
+    if (response.empty()) {
+        std::cerr << "Empty response from Polygon (get_volume)\n";
+        return volumes;
+    }
+
+    nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
+    if (data.is_discarded()) {
+        std::cerr << "Failed to parse JSON response (get_volume)\n";
+        return volumes;
+    }
+
+    if (data.contains("results") && data["results"].is_array()) {
+        for (auto& item: data["results"]) {
+            volumes[item.at("t")] = item.at("v");
+        }
+    }
+
+    // std::cout << volumes.size() << " intervals fetched.\n";
+
+    return volumes;
 }
