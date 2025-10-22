@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude -Werror
+CXXFLAGS = -std=c++17 -Iinclude -Werror -pthread
 LDFLAGS = -lcurl
 
 SRC = src/main.cpp src/contracts.cpp src/http_utils.cpp

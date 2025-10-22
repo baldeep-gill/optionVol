@@ -10,32 +10,37 @@ int main() {
     float range = 0.05;
     std::string date = "2025-10-10";
 
+    init_curl();
+
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
     
     // for (auto& item: contracts) {
         //     std::cout << item.ticker << "\n";
         // }
         
+    std::vector<std::vector<VolumePoint>> all_volumes = get_volume_par(contracts, 8, date, apiKey);
+    std::cout << "Fetched volumes for " << all_volumes.size() << " contracts.\n";
+
     std::map<long long, float> acc;
     std::map<long long, size_t> vol_aggs;
 
-    for (Contract& contract: contracts) {
-        int strike = contract.strike;
-        std::vector<VolumePoint> vols = get_volume(contract.ticker, date, apiKey);
+    // for (Contract& contract: contracts) {
+    //     int strike = contract.strike;
+    //     std::vector<VolumePoint> vols = get_volume(contract.ticker, date, apiKey);
 
-        for (VolumePoint& item: vols) {
-            acc[item.timestamp] += strike * item.volume;
-            vol_aggs[item.timestamp] += item.volume;
-        }
+    //     for (VolumePoint& item: vols) {
+    //         acc[item.timestamp] += strike * item.volume;
+    //         vol_aggs[item.timestamp] += item.volume;
+    //     }
 
-        std::cout << strike << "\n";
-    }
+    //     std::cout << strike << "\n";
+    // }
 
-    for (auto& entry: acc) {
-        float temp = entry.second / vol_aggs[entry.first];
-        entry.second = temp;
-        std::cout << entry.first << ": " << temp << "\n";
-    }
+    // for (auto& entry: acc) {
+    //     float temp = entry.second / vol_aggs[entry.first];
+    //     entry.second = temp;
+    //     std::cout << entry.first << ": " << temp << "\n";
+    // }
 
     cleanup_curl();
 

@@ -87,3 +87,27 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
 
     return volumes;
 }
+
+std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date, const std::string& apiKey) {
+    ThreadPool pool(thread_count);
+    std::vector<std::future<std::vector<VolumePoint>>> volume_futures;
+
+    for (const auto& contract: contracts) {
+        volume_futures.push_back(pool.enqueue([ticker = contract.ticker, date, apiKey] {
+            try {
+                return get_volume(ticker, date, apiKey);
+            } catch (...) {
+                return std::vector<VolumePoint>{};
+            }
+        }));
+    }
+
+    std::vector<std::vector<VolumePoint>> volumes;
+    volumes.reserve(volume_futures.size());
+    for (auto& v: volume_futures) {
+        volumes.push_back(v.get());
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    return volumes;
+}

@@ -21,4 +21,6 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
 
 std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey);
 
+std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date, const std::string& apiKey);
+
 #endif

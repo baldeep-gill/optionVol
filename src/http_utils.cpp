@@ -1,12 +1,14 @@
 #include "http_utils.h"
 #include <iostream>
 
-static CURL* curl = nullptr;
-
 size_t write_data(void* buffer, size_t size, size_t nmemb, std::string* output) {
     size_t total_size = size * nmemb;
     output->append((char*)buffer, total_size);
     return total_size;
+}
+
+void init_curl() {
+    curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 
 void cleanup_curl() {
@@ -14,14 +16,11 @@ void cleanup_curl() {
 }
 
 std::string http_get(const std::string& url) {
-    if (!curl) {
-        curl_global_init(CURL_GLOBAL_DEFAULT);
-        curl = curl_easy_init();
-        curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 0L);
-        curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 0L);
-    }
-    
     std::string response;
+
+    CURL* curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 0L);
+    curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 0L);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
