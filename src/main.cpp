@@ -5,7 +5,6 @@
 #include <chrono>
 
 int main() {
-    std::string apiKey = std::getenv("POLYGON_API_KEY");
     std::string underlying = "SPX";
     float strike = 6700;
     float range = 0.05;
@@ -13,7 +12,7 @@ int main() {
 
     init_curl();
 
-    std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
+    std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date);
     
     // for (auto& item: contracts) {
         //     std::cout << item.ticker << "\n";
@@ -21,12 +20,12 @@ int main() {
         
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::vector<VolumePoint>> all_volumes = get_volume_par(contracts, 30, date, apiKey);
+    std::vector<std::vector<VolumePoint>> all_volumes = get_volume_par(contracts, 30, date);
     std::cout << "Fetched volumes for " << all_volumes.size() << " contracts.\n";
 
     auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
-    std::cout << "Took " << duration.count() << " seconds.\n";
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Took " << duration.count() << " milliseconds.\n";
 
     std::map<long long, float> acc;
     std::map<long long, size_t> vol_aggs;

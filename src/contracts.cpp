@@ -5,12 +5,12 @@
 #include <iostream>
 #include <sstream>
 
-std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date, const std::string& apiKey) {
+std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date) {
     std::vector<Contract> contracts;
 
     std::ostringstream ss;
     ss  << "https://api.polygon.io/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
-        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=500&sort=strike_price&apiKey=" << apiKey;
+        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=500&sort=strike_price";
     std::string url = ss.str();
 
     // std::cout << "URL: " << url << "\n";
@@ -43,7 +43,6 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
 
         if (data.contains("next_url") && !data["next_url"].is_null()) {
             url = data["next_url"];
-            url += "&apiKey=" + apiKey;
         } else {
             url.clear();
         }
@@ -54,11 +53,11 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     return contracts;
 }
 
-std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
+std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date) {
     std::vector<VolumePoint> volumes;
 
     std::ostringstream ss;
-    ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc&apiKey=" << apiKey;
+    ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
     std::string url = ss.str();
 
     std::string response = http_get(url);
@@ -88,14 +87,14 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
     return volumes;
 }
 
-std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date, const std::string& apiKey) {
+std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date) {
     ThreadPool pool(thread_count);
     std::vector<std::future<std::vector<VolumePoint>>> volume_futures;
 
     for (const auto& contract: contracts) {
-        volume_futures.push_back(pool.enqueue([ticker = contract.ticker, date, apiKey] {
+        volume_futures.push_back(pool.enqueue([ticker = contract.ticker, date] {
             try {
-                return get_volume(ticker, date, apiKey);
+                return get_volume(ticker, date);
             } catch (...) {
                 return std::vector<VolumePoint>{};
             }

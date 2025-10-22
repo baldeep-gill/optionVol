@@ -17,10 +17,10 @@ struct VolumePoint {
     size_t volume;
 };
 
-std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date, const std::string& apiKey);
+std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date);
 
-std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey);
+std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date);
 
-std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date, const std::string& apiKey);
+std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date);
 
 #endif

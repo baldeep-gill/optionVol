@@ -16,12 +16,13 @@ void cleanup_curl() {
 }
 
 std::string http_get(const std::string& url) {
+    std::string final_url = url + "&apiKey=" + std::getenv("POLYGON_API_KEY");
     std::string response;
 
     thread_local CURL* curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 0L);
     curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 0L);
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, final_url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
