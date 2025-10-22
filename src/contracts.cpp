@@ -78,7 +78,7 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
         for (auto& item: data["results"]) {
             VolumePoint point;
             point.timestamp = item.at("t");
-            point.timestamp = item.at("v");
+            point.volume = item.at("v");
             volumes.emplace_back( point );
         }
     }
