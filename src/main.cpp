@@ -9,9 +9,7 @@ int main() {
     float strike = 6700;
     float range = 0.05;
     std::string date = "2025-10-10";
-
-    init_curl();
-
+    
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
     
     // for (auto& item: contracts) {
