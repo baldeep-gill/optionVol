@@ -9,7 +9,7 @@ int main() {
     float strike = 6700;
     float range = 0.05;
     std::string date = "2025-10-10";
-    
+
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
     
     // for (auto& item: contracts) {
@@ -21,11 +21,11 @@ int main() {
 
     for (Contract& contract: contracts) {
         int strike = contract.strike;
-        std::vector<std::pair<long long, size_t>> vols = get_volume(contract.ticker, date, apiKey);
+        std::vector<VolumePoint> vols = get_volume(contract.ticker, date, apiKey);
 
-        for (std::pair<long long, size_t>& item: vols) {
-            acc[item.first] += strike * item.second;
-            vol_aggs[item.first] += item.second;
+        for (VolumePoint& item: vols) {
+            acc[item.timestamp] += strike * item.volume;
+            vol_aggs[item.timestamp] += item.volume;
         }
 
         std::cout << strike << "\n";

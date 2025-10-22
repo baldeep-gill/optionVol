@@ -1,5 +1,6 @@
 #include "contracts.h"
 #include "http_utils.h"
+#include "thread_pool.h"
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
@@ -53,8 +54,8 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     return contracts;
 }
 
-std::vector<std::pair<long long, size_t>> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
-    std::vector<std::pair<long long, size_t>> volumes;
+std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
+    std::vector<VolumePoint> volumes;
 
     std::ostringstream ss;
     ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc&apiKey=" << apiKey;
@@ -75,7 +76,10 @@ std::vector<std::pair<long long, size_t>> get_volume(const std::string& ticker, 
 
     if (data.contains("results") && data["results"].is_array()) {
         for (auto& item: data["results"]) {
-            volumes.emplace_back( std::make_pair(item.at("t"), item.at("v")) );
+            VolumePoint point;
+            point.timestamp = item.at("t");
+            point.timestamp = item.at("v");
+            volumes.emplace_back( point );
         }
     }
 
