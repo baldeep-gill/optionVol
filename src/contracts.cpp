@@ -106,7 +106,7 @@ std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>
     volumes.reserve(volume_futures.size());
     for (auto& v: volume_futures) {
         volumes.push_back(v.get());
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
     return volumes;

@@ -18,7 +18,7 @@ void cleanup_curl() {
 std::string http_get(const std::string& url) {
     std::string response;
 
-    CURL* curl = curl_easy_init();
+    thread_local CURL* curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 0L);
     curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 0L);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
