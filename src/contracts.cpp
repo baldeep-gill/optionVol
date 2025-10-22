@@ -87,24 +87,28 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
     return volumes;
 }
 
-std::vector<std::vector<VolumePoint>> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date) {
+std::vector<ContractVolumes> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date) {
     ThreadPool pool(thread_count);
-    std::vector<std::future<std::vector<VolumePoint>>> volume_futures;
+    std::vector<std::future<ContractVolumes>> volume_futures;
 
     for (const auto& contract: contracts) {
-        volume_futures.push_back(pool.enqueue([ticker = contract.ticker, date] {
+        volume_futures.emplace_back(pool.enqueue([contract, date] {
             try {
-                return get_volume(ticker, date);
+                ContractVolumes cv;
+                cv.strike = contract.strike;
+                cv.slices = get_volume(contract.ticker, date);
+                return cv;
             } catch (...) {
-                return std::vector<VolumePoint>{};
+                return ContractVolumes{ contract.strike, {} };
             }
         }));
     }
 
-    std::vector<std::vector<VolumePoint>> volumes;
+    std::vector<ContractVolumes> volumes;
     volumes.reserve(volume_futures.size());
-    for (auto& v: volume_futures) {
-        volumes.push_back(v.get());
+
+    for (auto& f: volume_futures) {
+        volumes.push_back(f.get());
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 

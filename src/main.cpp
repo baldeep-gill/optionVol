@@ -13,40 +13,31 @@ int main() {
     init_curl();
 
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date);
-    
-    // for (auto& item: contracts) {
-        //     std::cout << item.ticker << "\n";
-    // }
         
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::vector<VolumePoint>> all_volumes = get_volume_par(contracts, 30, date);
+    std::vector<ContractVolumes> all_volumes = get_volume_par(contracts, 30, date);
     std::cout << "Fetched volumes for " << all_volumes.size() << " contracts.\n";
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     std::cout << "Took " << duration.count() << " milliseconds.\n";
 
-    std::map<long long, float> acc;
-    std::map<long long, size_t> vol_aggs;
+    std::map<long long, float> acc;         // For each timestamp store strike_t * vol_s_t
+    std::map<long long, size_t> vol_aggs;   // For each timestamp store vol_t
 
-    // for (Contract& contract: contracts) {
-    //     int strike = contract.strike;
-    //     std::vector<VolumePoint> vols = get_volume(contract.ticker, date, apiKey);
+    for (ContractVolumes& vec: all_volumes) {
+        for (VolumePoint& item: vec.slices) {
+            acc[item.timestamp] += vec.strike * item.volume;
+            vol_aggs[item.timestamp] += item.volume;
+        }
+    }
 
-    //     for (VolumePoint& item: vols) {
-    //         acc[item.timestamp] += strike * item.volume;
-    //         vol_aggs[item.timestamp] += item.volume;
-    //     }
-
-    //     std::cout << strike << "\n";
-    // }
-
-    // for (auto& entry: acc) {
-    //     float temp = entry.second / vol_aggs[entry.first];
-    //     entry.second = temp;
-    //     std::cout << entry.first << ": " << temp << "\n";
-    // }
+    for (auto& entry: acc) {
+        float temp = entry.second / vol_aggs[entry.first];
+        entry.second = temp;
+        std::cout << entry.first << ": " << temp << "\n";
+    }
 
     cleanup_curl();
 
