@@ -53,8 +53,8 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     return contracts;
 }
 
-std::map<long long, int> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
-    std::map<long long, int> volumes;
+std::vector<std::pair<long long, size_t>> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey) {
+    std::vector<std::pair<long long, size_t>> volumes;
 
     std::ostringstream ss;
     ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc&apiKey=" << apiKey;
@@ -75,7 +75,7 @@ std::map<long long, int> get_volume(const std::string& ticker, const std::string
 
     if (data.contains("results") && data["results"].is_array()) {
         for (auto& item: data["results"]) {
-            volumes[item.at("t")] = item.at("v");
+            volumes.emplace_back( std::make_pair(item.at("t"), item.at("v")) );
         }
     }
 

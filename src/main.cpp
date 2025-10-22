@@ -13,24 +13,33 @@ int main() {
     init_curl();
 
     std::vector<Contract> contracts = get_contracts(underlying, strike, range, "call", date, apiKey);
-
-    std::map<long long, int> volumes = get_volume(contracts[0].ticker, date, apiKey);
-
-    cleanup_curl();
-
+    
     // for (auto& item: contracts) {
-    //     std::cout << item.ticker << "\n";
-    // }
+        //     std::cout << item.ticker << "\n";
+        // }
+        
+    std::map<long long, float> acc;
+    std::map<long long, size_t> vol_aggs;
 
-    std::vector<std::map<long long, int>> agg;
-    agg.reserve(contracts.size());
+    for (Contract& contract: contracts) {
+        int strike = contract.strike;
+        std::vector<std::pair<long long, size_t>> vols = get_volume(contract.ticker, date, apiKey);
 
-    for (auto& item: contracts) {
-        agg.push_back(get_volume(item.ticker, date, apiKey));
+        for (std::pair<long long, size_t>& item: vols) {
+            acc[item.first] += strike * item.second;
+            vol_aggs[item.first] += item.second;
+        }
+
+        std::cout << strike << "\n";
     }
 
-    std::cout << contracts.size() << "\n";
-    std::cout << agg.size() << "\n";
+    for (auto& entry: acc) {
+        float temp = entry.second / vol_aggs[entry.first];
+        entry.second = temp;
+        std::cout << entry.first << ": " << temp << "\n";
+    }
+
+    cleanup_curl();
 
     return 0;
 }

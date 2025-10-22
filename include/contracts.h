@@ -14,6 +14,6 @@ struct Contract {
 
 std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date, const std::string& apiKey);
 
-std::map<long long, int> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey);
+std::vector<std::pair<long long, size_t>> get_volume(const std::string& ticker, const std::string& date, const std::string& apiKey);
 
 #endif
