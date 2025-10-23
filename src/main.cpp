@@ -1,6 +1,7 @@
 #include <iostream>
 #include "contracts.h"
 #include "http_utils.h"
+#include "thread_pool.h"
 #include <cstdlib>
 #include <chrono>
 #include <ctime>
@@ -16,6 +17,9 @@ std::string epoch_to_timestamp(long long epoch) {
 }
 
 int main() {
+    const size_t thread_count = 30;
+    ThreadPool pool(thread_count);
+    
     std::string underlying = "SPX";
     float strike = 6700;
     float range = 0.05;
@@ -31,8 +35,8 @@ int main() {
         
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<ContractVolumes> call_volumes = get_volume_par(call_contracts, 30, date);
-    std::vector<ContractVolumes> put_volumes = get_volume_par(put_contracts, 30, date);
+    std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
+    std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
     std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
 
     auto stop = std::chrono::high_resolution_clock::now();

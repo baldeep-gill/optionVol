@@ -1,6 +1,5 @@
 #include "contracts.h"
 #include "http_utils.h"
-#include "thread_pool.h"
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
@@ -87,8 +86,7 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
     return volumes;
 }
 
-std::vector<ContractVolumes> get_volume_par(const std::vector<Contract>& contracts, size_t thread_count, const std::string& date) {
-    ThreadPool pool(thread_count);
+std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<Contract>& contracts, const std::string& date) {
     std::vector<std::future<ContractVolumes>> volume_futures;
 
     for (const auto& contract: contracts) {
