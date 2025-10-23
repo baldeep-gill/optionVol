@@ -1,4 +1,6 @@
 #include "http_utils.h"
+#include <thread>
+#include <chrono>
 #include <iostream>
 
 size_t write_data(void* buffer, size_t size, size_t nmemb, std::string* output) {
@@ -29,6 +31,15 @@ std::string http_get(const std::string& url) {
 
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) std::cerr << "CURL error (" << url << "): " << curl_easy_strerror(res) << "\n";
+
+    if (res == CURLE_OK) {
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code == 429) {
+            std::cerr << "Rate limited - backing off\n";
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
 
     return response;
 }

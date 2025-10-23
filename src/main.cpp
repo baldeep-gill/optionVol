@@ -19,10 +19,10 @@ std::string epoch_to_timestamp(long long epoch) {
 int main() {
     const size_t thread_count = 30;
     ThreadPool pool(thread_count);
-    
+
     std::string underlying = "SPX";
     float strike = 6700;
-    float range = 0.05;
+    float range = 0.15;
     std::string date = "2025-10-22";
 
     std::cout << "Enter date (YYYY-MM-DD): ";
