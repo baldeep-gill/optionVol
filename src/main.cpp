@@ -77,6 +77,8 @@ int main() {
         std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
     }
 
+    // call_acc and put_acc now hold volume-weighted average strike for each timestamp
+
     cleanup_curl();
 
     return 0;
