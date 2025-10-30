@@ -57,6 +57,20 @@
         "future": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "thread": "cpp"
-    }
+        "thread": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "numbers": "cpp",
+        "ranges": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "unordered_set": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }

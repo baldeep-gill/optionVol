@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <ctime>
+#include <matplot/matplot.h>
 
 std::string epoch_to_timestamp(long long epoch) {
     epoch -= 5 * 3600 * 1000;
@@ -27,6 +28,8 @@ int main() {
 
     std::cout << "Enter date (YYYY-MM-DD): ";
     std::cin >> date;
+    std::cin.clear();
+    std::cin.ignore(10000, '\n');
 
     init_curl();
 
@@ -63,23 +66,34 @@ int main() {
         }
     }
 
-    std::cout << "CALLS:\n";
-    for (auto& entry: call_acc) {
-        float temp = entry.second / call_vol_aggs[entry.first];
-        entry.second = temp;
-        std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
-    }
+    // std::cout << "CALLS:\n";
+    // for (auto& entry: call_acc) {
+    //     float temp = entry.second / call_vol_aggs[entry.first];
+    //     entry.second = temp;
+    //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
+    // }
 
-    std::cout << "PUTS:\n";
-    for (auto& entry: put_acc) {
-        float temp = entry.second / put_vol_aggs[entry.first];
-        entry.second = temp;
-        std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
-    }
+    // std::cout << "PUTS:\n";
+    // for (auto& entry: put_acc) {
+    //     float temp = entry.second / put_vol_aggs[entry.first];
+    //     entry.second = temp;
+    //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
+    // }
 
-    // call_acc and put_acc now hold volume-weighted average strike for each timestamp
+    std::vector<double> call_vwas, put_vwas;
+    for (auto& [ts, acc]: call_acc) {
+        if (call_vol_aggs[ts] > 0) {
+            call_vwas.push_back(acc / call_vol_aggs[ts]);
+            put_vwas.push_back(put_acc.count(ts) && put_vol_aggs[ts] > 0 ? put_acc[ts] / put_vol_aggs[ts] : NAN);
+        }
+    }
 
     cleanup_curl();
+    matplot::plot(call_vwas, "-g")->line_width(2).display_name("Calls");
+    matplot::hold(matplot::on);
+    matplot::plot(put_vwas, "-r")->line_width(2).display_name("Puts");
+
+    matplot::show();
 
     return 0;
 }
