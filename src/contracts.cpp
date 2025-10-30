@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
+#include "cache_utils.h"
 
 std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date) {
     std::vector<Contract> contracts;
@@ -54,16 +55,24 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
 
 std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date) {
     std::vector<VolumePoint> volumes;
+    std::string cache_path = generate_filename("contract", ticker);
+    std::string response;
 
-    std::ostringstream ss;
-    ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
-    std::string url = ss.str();
+    if (cache_exists(cache_path)) {
+        response = read_cache(cache_path).value();
+    } else {
+        std::ostringstream ss;
+        ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
+        std::string url = ss.str();
 
-    std::string response = http_get(url);
+        response = http_get(url);
 
-    if (response.empty()) {
-        std::cerr << "Empty response from Polygon (get_volume)\n";
-        return volumes;
+        if (response.empty()) {
+            std::cerr << "Empty response from Polygon (get_volume)\n";
+            return volumes;
+        }
+
+        write_cache(cache_path, response);
     }
 
     nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
