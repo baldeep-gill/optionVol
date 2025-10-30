@@ -21,7 +21,7 @@ std::optional<std::string> read_cache(const std::string& path) {
 }
 
 void write_cache(const std::string& path, const std::string& data) {
-    std::ofstream file(path + path, std::ios::trunc);
+    std::ofstream file(path, std::ios::trunc);
     if (!file.is_open()) {
         std::cerr << "Failed to write file: " << path << "\n";
         return;
