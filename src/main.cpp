@@ -3,6 +3,7 @@
 #include "http_utils.h"
 #include "thread_pool.h"
 #include <cstdlib>
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <matplot/matplot.h>
@@ -92,6 +93,8 @@ int main() {
     matplot::plot(call_vwas, "-g")->line_width(2).display_name("Calls");
     matplot::hold(matplot::on);
     matplot::plot(put_vwas, "-r")->line_width(2).display_name("Puts");
+    matplot::xticks(matplot::iota(1, 6, 78));
+    matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});
 
     matplot::show();
 
