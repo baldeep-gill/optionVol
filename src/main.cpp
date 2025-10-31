@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 #include <ctime>
 #include <matplot/matplot.h>
 
@@ -27,10 +28,10 @@ int main() {
     float range = 0.15;
     std::string date = "2025-10-22";
 
-    std::cout << "Enter date (YYYY-MM-DD): ";
-    std::cin >> date;
-    std::cin.clear();
-    std::cin.ignore(10000, '\n');
+    // std::cout << "Enter date (YYYY-MM-DD): ";
+    // std::cin >> date;
+    // std::cin.clear();
+    // std::cin.ignore(10000, '\n');
 
     init_curl();
 
@@ -82,21 +83,29 @@ int main() {
     // }
 
     std::vector<double> call_vwas, put_vwas;
+
+    auto f = matplot::figure(true);
+    matplot::hold(matplot::on);
+    auto l1 = matplot::plot(call_vwas, "-g");
+    auto l2 = matplot::plot(put_vwas, "-r");
+
     for (auto& [ts, acc]: call_acc) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
         if (call_vol_aggs[ts] > 0) {
             call_vwas.push_back(acc / call_vol_aggs[ts]);
             put_vwas.push_back(put_acc.count(ts) && put_vol_aggs[ts] > 0 ? put_acc[ts] / put_vol_aggs[ts] : NAN);
         }
+        l1->y_data(call_vwas).line_width(2);
+        l2->y_data(put_vwas).line_width(2);
+        f->draw();
     }
 
-    cleanup_curl();
-    matplot::plot(call_vwas, "-g")->line_width(2).display_name("Calls");
-    matplot::hold(matplot::on);
-    matplot::plot(put_vwas, "-r")->line_width(2).display_name("Puts");
-    matplot::xticks(matplot::iota(1, 6, 78));
-    matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});
-
+    // matplot::xticks(matplot::iota(1, 6, 78));
+    // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});
     matplot::show();
+
+    cleanup_curl();
+
 
     return 0;
 }
