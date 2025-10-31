@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
+#include <filesystem>
 #include <thread>
 #include <ctime>
 #include <matplot/matplot.h>
@@ -110,6 +112,7 @@ int main() {
     std::iota(x.begin(), x.end(), 1);
 
     auto f = matplot::figure(true);
+    f->title("SPX " + date);
     matplot::hold(matplot::on);
     auto l_call = matplot::plot(x, call_vwas, "-g");
     auto l_put = matplot::plot(x, put_vwas, "-r");
@@ -118,7 +121,9 @@ int main() {
     auto call_regression = matplot::plot(x, call_vwas, "--");
     auto put_regression = matplot::plot(x, put_vwas, "--");
 
-    size_t count = 1;
+
+    std::filesystem::create_directory("frames");
+    size_t count = 0;
     for (auto& [ts, acc]: call_acc) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (call_vol_aggs[ts] > 0) {
@@ -148,6 +153,11 @@ int main() {
         put_regression->y_data(y_put).x_data(x).color("red").line_width(1);
 
         f->draw();
+
+        std::ostringstream filename;
+        filename << "frames/frame_" << std::setw(3) << std::setfill('0') << count << ".png";
+        matplot::save(filename.str());
+        count++;
     }
 
     // matplot::xticks(matplot::iota(1, 6, 78));
