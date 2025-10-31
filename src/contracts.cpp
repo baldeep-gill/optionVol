@@ -9,7 +9,7 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     std::vector<Contract> contracts;
 
     std::ostringstream ss;
-    ss  << "https://api.polygon.io/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
+    ss  << "https://api.massive.com/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
         << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=500&sort=strike_price";
     std::string url = ss.str();
 
@@ -62,7 +62,7 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
         response = read_cache(cache_path).value();
     } else {
         std::ostringstream ss;
-        ss << "https://api.polygon.io/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
+        ss << "https://api.massive.com/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
         std::string url = ss.str();
 
         response = http_get(url);
