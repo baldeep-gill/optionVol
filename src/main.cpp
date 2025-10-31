@@ -45,9 +45,9 @@ int main() {
     ThreadPool pool(thread_count);
 
     std::string underlying = "SPX";
-    float strike = 6700;
-    float range = 0.15;
     std::string date = "2025-10-22";
+    float strike = get_open_price(date);
+    float range = 0.15;
 
     // std::cout << "Enter date (YYYY-MM-DD): ";
     // std::cin >> date;
@@ -89,6 +89,8 @@ int main() {
         }
     }
 
+    std::map<long long, float> spx_price = get_price(date);
+
     // std::cout << "CALLS:\n";
     // for (auto& entry: call_acc) {
     //     float temp = entry.second / call_vol_aggs[entry.first];
@@ -103,7 +105,7 @@ int main() {
     //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
     // }
 
-    std::vector<double> call_vwas, put_vwas;
+    std::vector<double> call_vwas, put_vwas, spot;
     std::vector<double> x(78);
     std::iota(x.begin(), x.end(), 1);
 
@@ -111,19 +113,23 @@ int main() {
     matplot::hold(matplot::on);
     auto l_call = matplot::plot(x, call_vwas, "-g");
     auto l_put = matplot::plot(x, put_vwas, "-r");
+    auto l_spot = matplot::plot(x, spot);
 
     auto call_regression = matplot::plot(x, call_vwas, "--");
     auto put_regression = matplot::plot(x, put_vwas, "--");
 
+    size_t count = 1;
     for (auto& [ts, acc]: call_acc) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (call_vol_aggs[ts] > 0) {
             call_vwas.push_back(acc / call_vol_aggs[ts]);
             put_vwas.push_back(put_acc.count(ts) && put_vol_aggs[ts] > 0 ? put_acc[ts] / put_vol_aggs[ts] : NAN);
+            spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
         }
 
         l_call->y_data(call_vwas).line_width(2);
         l_put->y_data(put_vwas).line_width(2);
+        l_spot->y_data(spot).line_width(1.5);
 
         auto [m_call, b_call] = linear_regression(call_vwas);
         auto [m_put, b_put] = linear_regression(put_vwas);

@@ -5,12 +5,76 @@
 #include <sstream>
 #include "cache_utils.h"
 
+float get_open_price(const std::string& date) {
+    std::ostringstream ss;
+    ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/1/day/" << date << "/" << date << "?sort=asc";
+    std::string url = ss.str();
+    
+    std::string response = http_get(url);
+
+    if (response.empty()) {
+        std::cerr << "Empty response from Polygon (get_volume)\n";
+        return 0.0;
+    }
+
+    nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
+    if (data.is_discarded()) {
+        std::cerr << "Failed to parse JSON response (get_volume)\n";
+        return 0.0;
+    }
+
+    if (data.contains("results") && data["results"].is_array()) {
+        for (auto& item: data["results"]) {
+            return item.at("o");
+        }
+    }
+
+    return 0.0;
+}
+
+std::map<long long, float> get_price(const std::string& date) {
+    std::map<long long, float> price;
+    std::string cache_path = generate_filename("price", date);
+    std::string response;
+
+    if (cache_exists(cache_path)) {
+        response = read_cache(cache_path).value();
+    } else {
+        std::ostringstream ss;
+        ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/5/minute/" << date << "/" << date << "?sort=asc";
+        std::string url = ss.str();
+
+        response = http_get(url);
+
+        if (response.empty()) {
+            std::cerr << "Empty response from Polygon (get_price)\n";
+            return price;
+        }
+
+        write_cache(cache_path, response);
+    }
+
+    nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
+    if (data.is_discarded()) {
+        std::cerr << "Failed to parse JSON response (get_price)\n";
+        return price;
+    }
+
+    if (data.contains("results") && data["results"].is_array()) {
+        for (auto& item: data["results"]) {
+            price[item.at("t")] = item.at("c");
+        }
+    }
+
+    return price;
+}
+
 std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date) {
     std::vector<Contract> contracts;
 
     std::ostringstream ss;
     ss  << "https://api.massive.com/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
-        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&limit=500&sort=strike_price";
+        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&sort=strike_price";
     std::string url = ss.str();
 
     // std::cout << "URL: " << url << "\n";
