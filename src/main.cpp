@@ -19,6 +19,27 @@ std::string epoch_to_timestamp(long long epoch) {
     return std::string(buffer);
 }
 
+std::pair<double, double> linear_regression(const std::vector<double>& y) {
+    if (y.size() < 2) return {0.0, 0.0};
+    std::vector<double> x(y.size());
+    std::iota(x.begin(), x.end(), 1);
+
+    double n = static_cast<double>(y.size());
+    double sum_x = std::accumulate(x.begin(), x.end(), 0.0);
+    double sum_y = std::accumulate(y.begin(), y.end(), 0.0);
+    double sum_xy = 0.0, sum_x2 = 0.0;
+
+    for (size_t i = 0; i < x.size(); ++i) {
+        sum_xy += x[i] * y[i];
+        sum_x2 += x[i] * x[i];
+    }
+
+    double m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
+    double b = (sum_y - m * sum_x) / n;
+
+    return {m, b};
+}
+
 int main() {
     const size_t thread_count = 30;
     ThreadPool pool(thread_count);
@@ -83,20 +104,43 @@ int main() {
     // }
 
     std::vector<double> call_vwas, put_vwas;
+    std::vector<double> x(78);
+    std::iota(x.begin(), x.end(), 1);
 
     auto f = matplot::figure(true);
     matplot::hold(matplot::on);
-    auto l1 = matplot::plot(call_vwas, "-g");
-    auto l2 = matplot::plot(put_vwas, "-r");
+    auto l_call = matplot::plot(x, call_vwas, "-g");
+    auto l_put = matplot::plot(x, put_vwas, "-r");
+
+    auto call_regression = matplot::plot(x, call_vwas, "--");
+    auto put_regression = matplot::plot(x, put_vwas, "--");
 
     for (auto& [ts, acc]: call_acc) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (call_vol_aggs[ts] > 0) {
             call_vwas.push_back(acc / call_vol_aggs[ts]);
             put_vwas.push_back(put_acc.count(ts) && put_vol_aggs[ts] > 0 ? put_acc[ts] / put_vol_aggs[ts] : NAN);
         }
-        l1->y_data(call_vwas).line_width(2);
-        l2->y_data(put_vwas).line_width(2);
+
+        l_call->y_data(call_vwas).line_width(2);
+        l_put->y_data(put_vwas).line_width(2);
+
+        auto [m_call, b_call] = linear_regression(call_vwas);
+        auto [m_put, b_put] = linear_regression(put_vwas);
+        
+        std::vector<double> y_call;
+        y_call.reserve(x.size());
+        std::vector<double> y_put;
+        y_put.reserve(x.size());
+
+        for (double xi: x) {
+            y_call.push_back(m_call * xi + b_call);
+            y_put.push_back(m_put * xi + b_put);
+        }
+
+        call_regression->y_data(y_call).x_data(x).color("green").line_width(1);
+        put_regression->y_data(y_put).x_data(x).color("red").line_width(1);
+
         f->draw();
     }
 
@@ -105,7 +149,5 @@ int main() {
     matplot::show();
 
     cleanup_curl();
-
-
     return 0;
 }
