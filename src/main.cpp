@@ -56,41 +56,6 @@ int main() {
     // std::cin.clear();
     // std::cin.ignore(10000, '\n');
 
-    std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
-    std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);
-        
-    auto start = std::chrono::high_resolution_clock::now();
-
-    std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
-    std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
-    std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
-
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cout << "Took " << duration.count() << " milliseconds.\n";
-
-    std::map<long long, float> call_acc;         // For each timestamp store strike_t * vol_s_t
-    std::map<long long, size_t> call_vol_aggs;   // For each timestamp store vol_t
-
-    std::map<long long, float> put_acc;
-    std::map<long long, size_t> put_vol_aggs;
-
-    for (ContractVolumes& vec: call_volumes) {
-        for (VolumePoint& item: vec.slices) {
-            call_acc[item.timestamp] += vec.strike * item.volume;
-            call_vol_aggs[item.timestamp] += item.volume;
-        }
-    }
-
-    for (ContractVolumes& vec: put_volumes) {
-        for (VolumePoint& item: vec.slices) {
-            put_acc[item.timestamp] += vec.strike * item.volume;
-            put_vol_aggs[item.timestamp] += item.volume;
-        }
-    }
-
-    std::map<long long, float> spx_price = get_price(date);
-
     // std::cout << "CALLS:\n";
     // for (auto& entry: call_acc) {
     //     float temp = entry.second / call_vol_aggs[entry.first];
@@ -105,22 +70,45 @@ int main() {
     //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
     // }
 
+
+    std::map<long long, float> spx_price = get_price(date);
+    const auto& [timestamps, calls, puts] = calculate_aggregates(underlying, strike, range, date, pool);
+
     std::vector<double> call_vwas, put_vwas, spot;
-    std::vector<double> x(78);
+    for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
+
+
+
+    std::vector<double> x(timestamps.size());
     std::iota(x.begin(), x.end(), 1);
 
     auto f = matplot::figure(true);
     f->title("SPX " + date);
     matplot::hold(matplot::on);
-    auto l_call = matplot::plot(x, call_vwas, "-g");
-    auto l_put = matplot::plot(x, put_vwas, "-r");
-    auto l_spot = matplot::plot(x, spot);
+    auto l_call = matplot::plot(x, calls, "-g")->line_width(2);
+    auto l_put = matplot::plot(x, puts, "-r")->line_width(2);
+    auto l_spot = matplot::plot(x, spot)->line_width(1.5);
 
-    auto call_regression = matplot::plot(x, call_vwas, "--");
-    auto put_regression = matplot::plot(x, put_vwas, "--");
+    auto [m_call, b_call] = linear_regression(calls);
+    auto [m_put, b_put] = linear_regression(puts);
+
+    std::vector<double> y_call;
+    y_call.reserve(x.size());
+    std::vector<double> y_put;
+    y_put.reserve(x.size());
+
+    for (double xi: x) {
+        y_call.push_back(m_call * xi + b_call);
+        y_put.push_back(m_put * xi + b_put);
+    }
+
+    auto call_regression = matplot::plot(x, y_call, "--")->line_width(1).color("green");
+    auto put_regression = matplot::plot(x, y_put, "--")->line_width(1).color("red");
+
+    f->draw();
 
 
-    std::filesystem::create_directory("frames");
+    /* std::filesystem::create_directory("frames");
     size_t count = 0;
     for (auto& [ts, acc]: call_acc) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -156,7 +144,7 @@ int main() {
         filename << "frames/frame_" << std::setw(3) << std::setfill('0') << count << ".png";
         matplot::save(filename.str());
         count++;
-    }
+    } */
 
     // matplot::xticks(matplot::iota(1, 6, 78));
     // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});

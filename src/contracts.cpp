@@ -185,3 +185,61 @@ std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<
 
     return volumes;
 }
+
+std::tuple<std::vector<long long>, std::vector<double>, std::vector<double>> calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
+    std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);    
+
+    std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
+    std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
+
+    std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Took " << duration.count() << " milliseconds.\n";
+
+    std::map<long long, double> call_accumulator;         // For each timestamp store strike_t * vol_s_t
+    std::map<long long, size_t> call_vol_aggregates;   // For each timestamp store vol_t
+
+    for (ContractVolumes& vec: call_volumes) {
+        for (VolumePoint& item: vec.slices) {
+            call_accumulator[item.timestamp] += vec.strike * item.volume;
+            call_vol_aggregates[item.timestamp] += item.volume;
+        }
+    }
+
+    std::map<long long, double> put_accumulator;
+    std::map<long long, size_t> put_vol_aggregates;
+
+    for (ContractVolumes& vec: put_volumes) {
+        for (VolumePoint& item: vec.slices) {
+            put_accumulator[item.timestamp] += vec.strike * item.volume;
+            put_vol_aggregates[item.timestamp] += item.volume;
+        }
+    }
+
+    std::vector<long long> timestamps;
+    std::vector<double> call_vwas;
+    std::vector<double> put_vwas;
+
+    for (auto& [ts, acc]: call_accumulator) {
+        timestamps.push_back(ts);
+
+        call_vwas.push_back( 
+            call_vol_aggregates[ts] > 0
+                ? acc / call_vol_aggregates[ts]
+                : 0
+        );
+
+        put_vwas.push_back(
+            put_accumulator.count(ts) && put_vol_aggregates[ts] > 0
+                ? put_accumulator[ts] / put_vol_aggregates[ts]
+                : 0
+        );
+    }
+
+    return { timestamps, call_vwas, put_vwas };
+} 

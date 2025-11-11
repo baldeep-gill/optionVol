@@ -30,3 +30,5 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
 std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date);
 
 std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<Contract>& contracts, const std::string& date);
+
+std::tuple<std::vector<long long>, std::vector<double>, std::vector<double>> calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool);
