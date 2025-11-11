@@ -9,7 +9,6 @@ include_directories(include)
 set(SOURCES
     src/main.cpp
     src/contracts.cpp
-    src/http_utils.cpp
     src/cache_utils.cpp
     src/HttpUtils.cpp
 )
