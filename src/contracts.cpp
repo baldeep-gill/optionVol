@@ -10,7 +10,7 @@ float get_open_price(const std::string& date) {
     ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/1/day/" << date << "/" << date << "?sort=asc";
     std::string url = ss.str();
     
-    std::string response = HttpUtils::HttpUtils::http_get(url);
+    std::string response = HttpUtils::http_get(url);
 
     if (response.empty()) {
         std::cerr << "Empty response from Polygon (get_volume)\n";
