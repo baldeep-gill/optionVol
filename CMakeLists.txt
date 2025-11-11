@@ -11,6 +11,7 @@ set(SOURCES
     src/contracts.cpp
     src/http_utils.cpp
     src/cache_utils.cpp
+    src/HttpUtils.cpp
 )
 
 add_executable(optionVol ${SOURCES})

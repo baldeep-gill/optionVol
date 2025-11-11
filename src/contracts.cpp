@@ -1,5 +1,5 @@
 #include "contracts.h"
-#include "http_utils.h"
+#include "HttpUtils.h"
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
@@ -10,7 +10,7 @@ float get_open_price(const std::string& date) {
     ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/1/day/" << date << "/" << date << "?sort=asc";
     std::string url = ss.str();
     
-    std::string response = http_get(url);
+    std::string response = HttpUtils::HttpUtils::http_get(url);
 
     if (response.empty()) {
         std::cerr << "Empty response from Polygon (get_volume)\n";
@@ -44,7 +44,7 @@ std::map<long long, float> get_price(const std::string& date) {
         ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/5/minute/" << date << "/" << date << "?sort=asc";
         std::string url = ss.str();
 
-        response = http_get(url);
+        response = HttpUtils::http_get(url);
 
         if (response.empty()) {
             std::cerr << "Empty response from Polygon (get_price)\n";
@@ -80,7 +80,7 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     // std::cout << "URL: " << url << "\n";
 
     while (!url.empty()) {
-        std::string response = http_get(url);
+        std::string response = HttpUtils::http_get(url);
 
         if (response.empty()) {
             std::cerr << "Empty response from Polygon (get_contracts)\n";
@@ -129,7 +129,7 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
         ss << "https://api.massive.com/v2/aggs/ticker/" << ticker << "/range/5/minute/" << date << "/" << date << "?adjusted=true&sort=asc";
         std::string url = ss.str();
 
-        response = http_get(url);
+        response = HttpUtils::http_get(url);
 
         if (response.empty()) {
             std::cerr << "Empty response from Polygon (get_volume)\n";

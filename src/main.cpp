@@ -1,6 +1,6 @@
 #include <iostream>
 #include "contracts.h"
-#include "http_utils.h"
+#include "HttpUtils.h"
 #include "thread_pool.h"
 #include <cstdlib>
 #include <algorithm>
@@ -55,8 +55,6 @@ int main() {
     // std::cin >> date;
     // std::cin.clear();
     // std::cin.ignore(10000, '\n');
-
-    init_curl();
 
     std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
     std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);
@@ -164,6 +162,5 @@ int main() {
     // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});
     matplot::show();
 
-    cleanup_curl();
     return 0;
 }
