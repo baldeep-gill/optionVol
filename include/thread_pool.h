@@ -1,6 +1,4 @@
-#ifndef THREAD_POOL_H
-#define THREAD_POOL_H
-
+#pragma once
 #include <vector>
 #include <thread>
 #include <queue>
@@ -76,5 +74,3 @@ auto ThreadPool::enqueue(F&& f, Args&&... args) -> std::future<decltype(f(args..
     cv.notify_one();
     return res;
 }
-
-#endif

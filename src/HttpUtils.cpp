@@ -1,12 +1,23 @@
 #include "HttpUtils.h"
 
+class CurlHandleWrapper {
+    public:
+        CURL* curl;
+        CurlHandleWrapper() : curl(curl_easy_init()) {}
+        ~CurlHandleWrapper() {
+            if (curl) curl_easy_cleanup(curl);
+        }
+};
+
+thread_local CurlHandleWrapper curlWrapper;
+
 std::string HttpUtils::apiKey;
 
 std::string HttpUtils::http_get(const std::string& url) {
     std::string final_url = url + "&apiKey=" + HttpUtils::apiKey;
     std::string response;
 
-    thread_local CURL* curl = curl_easy_init();
+    CURL* curl = curlWrapper.curl;
     curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 0L);
     curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 0L);
     curl_easy_setopt(curl, CURLOPT_URL, final_url.c_str());
