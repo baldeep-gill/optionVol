@@ -31,9 +31,9 @@ void write_cache(const std::string& path, const std::string& data) {
     file.close();
 }
 
-std::string generate_filename(const std::string& prefix, const std::string& ticker) {
-    std::string safe_ticker = ticker;
-    std::replace(safe_ticker.begin(), safe_ticker.end(), ':', '_');
+std::string generate_filename(const std::string& prefix, const std::string& name) {
+    std::string safe_name = name;
+    std::replace(safe_name.begin(), safe_name.end(), ':', '_');
 
-    return fs::current_path().parent_path().string() + "/" + "cache/" + prefix + "_" + safe_ticker + ".json";
+    return fs::current_path().parent_path().string() + "/" + "cache/" + prefix + "_" + name + ".json";
 }

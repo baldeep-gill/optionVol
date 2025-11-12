@@ -187,66 +187,115 @@ std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<
 }
 
 DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool) {
+    DataAggregates agg;
+    std::vector<long long> timestamps;
+    std::vector<double> spot;
+    std::vector<double> call_vwas;
+    std::vector<double> put_vwas;
+    
+    std::ostringstream ss;
+    ss << underlying << "_" << strike << "_" << range << "_" << date;
+    std::string cache_path = generate_filename("aggregate", ss.str());
+    std::string response;
+    
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
-    std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);    
+    if (cache_exists(cache_path)) {
+        response = read_cache(cache_path).value();
 
-    std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
-    std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
+        nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
+        if (data.is_discarded()) {
+            std::cerr << "Failed to parse JSON response (get_volume)\n";
+            return agg;
+        }
 
-    std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
+        if (data.contains("timestamps") && data["timestamps"].is_array()) {
+            for (auto& item: data["timestamps"]) {
+                timestamps.emplace_back( item );
+            }
+        }
+
+        if (data.contains("spot") && data["spot"].is_array()) {
+            for (auto& item: data["spot"]) {
+                spot.emplace_back( item );
+            }
+        }
+
+        if (data.contains("calls") && data["calls"].is_array()) {
+            for (auto& item: data["calls"]) {
+                call_vwas.emplace_back(item);
+            }
+        }
+
+        if (data.contains("puts") && data["puts"].is_array()) {
+            for (auto& item: data["puts"]) {
+                put_vwas.emplace_back(item);
+            }
+        }
+    } else {
+        std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
+        std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);    
+
+        std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
+        std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
+
+        std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
+
+        std::map<long long, double> call_accumulator;         // For each timestamp store strike_t * vol_s_t
+        std::map<long long, size_t> call_vol_aggregates;   // For each timestamp store vol_t
+
+        for (ContractVolumes& vec: call_volumes) {
+            for (VolumePoint& item: vec.slices) {
+                call_accumulator[item.timestamp] += vec.strike * item.volume;
+                call_vol_aggregates[item.timestamp] += item.volume;
+            }
+        }
+
+        std::map<long long, double> put_accumulator;
+        std::map<long long, size_t> put_vol_aggregates;
+
+        for (ContractVolumes& vec: put_volumes) {
+            for (VolumePoint& item: vec.slices) {
+                put_accumulator[item.timestamp] += vec.strike * item.volume;
+                put_vol_aggregates[item.timestamp] += item.volume;
+            }
+        }
+
+        
+
+        for (auto& [ts, acc]: call_accumulator) {
+            timestamps.push_back(ts);
+
+            call_vwas.push_back( 
+                call_vol_aggregates[ts] > 0
+                    ? acc / call_vol_aggregates[ts]
+                    : 0
+            );
+
+            put_vwas.push_back(
+                put_accumulator.count(ts) && put_vol_aggregates[ts] > 0
+                    ? put_accumulator[ts] / put_vol_aggregates[ts]
+                    : 0
+            );
+        }
+
+
+        std::map<long long, float> spx_price = get_price(date);
+        for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
+
+        nlohmann::json j;
+        j["timestamps"] = timestamps;
+        j["spot"] = spot;
+        j["calls"] = call_vwas;
+        j["puts"] = put_vwas;
+
+        write_cache(cache_path, j.dump());
+    }
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     std::cout << "Took " << duration.count() << " milliseconds.\n";
 
-    std::map<long long, double> call_accumulator;         // For each timestamp store strike_t * vol_s_t
-    std::map<long long, size_t> call_vol_aggregates;   // For each timestamp store vol_t
-
-    for (ContractVolumes& vec: call_volumes) {
-        for (VolumePoint& item: vec.slices) {
-            call_accumulator[item.timestamp] += vec.strike * item.volume;
-            call_vol_aggregates[item.timestamp] += item.volume;
-        }
-    }
-
-    std::map<long long, double> put_accumulator;
-    std::map<long long, size_t> put_vol_aggregates;
-
-    for (ContractVolumes& vec: put_volumes) {
-        for (VolumePoint& item: vec.slices) {
-            put_accumulator[item.timestamp] += vec.strike * item.volume;
-            put_vol_aggregates[item.timestamp] += item.volume;
-        }
-    }
-
-    std::vector<long long> timestamps;
-    std::vector<double> call_vwas;
-    std::vector<double> put_vwas;
-
-    for (auto& [ts, acc]: call_accumulator) {
-        timestamps.push_back(ts);
-
-        call_vwas.push_back( 
-            call_vol_aggregates[ts] > 0
-                ? acc / call_vol_aggregates[ts]
-                : 0
-        );
-
-        put_vwas.push_back(
-            put_accumulator.count(ts) && put_vol_aggregates[ts] > 0
-                ? put_accumulator[ts] / put_vol_aggregates[ts]
-                : 0
-        );
-    }
-
-
-    std::map<long long, float> spx_price = get_price(date);
-    std::vector<double> spot;
-    for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
-
-    DataAggregates agg;
     agg.underlying = underlying;
     agg.date = date;
     agg.timestamps = timestamps;
