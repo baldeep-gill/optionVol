@@ -21,6 +21,15 @@ struct ContractVolumes {
     std::vector<VolumePoint> slices;
 };
 
+struct DataAggregates {
+    std::string underlying;
+    std::string date;
+    std::vector<long long> timestamps;
+    std::vector<double> spot;
+    std::vector<double> calls;
+    std::vector<double> puts;
+};
+
 float get_open_price(const std::string& date);
 
 std::map<long long, float> get_price(const std::string& date);
@@ -31,4 +40,4 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
 
 std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<Contract>& contracts, const std::string& date);
 
-std::tuple<std::vector<long long>, std::vector<double>, std::vector<double>> calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool);
+DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool);

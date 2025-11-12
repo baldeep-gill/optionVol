@@ -186,7 +186,7 @@ std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<
     return volumes;
 }
 
-std::tuple<std::vector<long long>, std::vector<double>, std::vector<double>> calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool) {
+DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool) {
     auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
@@ -241,5 +241,18 @@ std::tuple<std::vector<long long>, std::vector<double>, std::vector<double>> cal
         );
     }
 
-    return { timestamps, call_vwas, put_vwas };
-} 
+
+    std::map<long long, float> spx_price = get_price(date);
+    std::vector<double> spot;
+    for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
+
+    DataAggregates agg;
+    agg.underlying = underlying;
+    agg.date = date;
+    agg.timestamps = timestamps;
+    agg.spot = spot;
+    agg.calls = call_vwas;
+    agg.puts = put_vwas;
+
+    return agg;
+}

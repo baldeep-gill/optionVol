@@ -10,6 +10,7 @@
 #include <thread>
 #include <ctime>
 #include <matplot/matplot.h>
+#include "VisHandle.h"
 
 std::string epoch_to_timestamp(long long epoch) {
     epoch -= 5 * 3600 * 1000;
@@ -21,26 +22,26 @@ std::string epoch_to_timestamp(long long epoch) {
     return std::string(buffer);
 }
 
-std::pair<double, double> linear_regression(const std::vector<double>& y) {
-    if (y.size() < 2) return {0.0, 0.0};
-    std::vector<double> x(y.size());
-    std::iota(x.begin(), x.end(), 1);
+// std::pair<double, double> linear_regression(const std::vector<double>& y) {
+//     if (y.size() < 2) return {0.0, 0.0};
+//     std::vector<double> x(y.size());
+//     std::iota(x.begin(), x.end(), 1);
 
-    double n = static_cast<double>(y.size());
-    double sum_x = std::accumulate(x.begin(), x.end(), 0.0);
-    double sum_y = std::accumulate(y.begin(), y.end(), 0.0);
-    double sum_xy = 0.0, sum_x2 = 0.0;
+//     double n = static_cast<double>(y.size());
+//     double sum_x = std::accumulate(x.begin(), x.end(), 0.0);
+//     double sum_y = std::accumulate(y.begin(), y.end(), 0.0);
+//     double sum_xy = 0.0, sum_x2 = 0.0;
 
-    for (size_t i = 0; i < x.size(); ++i) {
-        sum_xy += x[i] * y[i];
-        sum_x2 += x[i] * x[i];
-    }
+//     for (size_t i = 0; i < x.size(); ++i) {
+//         sum_xy += x[i] * y[i];
+//         sum_x2 += x[i] * x[i];
+//     }
 
-    double m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
-    double b = (sum_y - m * sum_x) / n;
+//     double m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
+//     double b = (sum_y - m * sum_x) / n;
 
-    return {m, b};
-}
+//     return {m, b};
+// }
 
 int main() {
     const size_t thread_count = 30;
@@ -51,46 +52,24 @@ int main() {
     float strike = get_open_price(date);
     float range = 0.15;
 
-    // std::cout << "Enter date (YYYY-MM-DD): ";
-    // std::cin >> date;
-    // std::cin.clear();
-    // std::cin.ignore(10000, '\n');
+    DataAggregates aggs = calculate_aggregates(underlying, strike, range, date, pool);
 
-    // std::cout << "CALLS:\n";
-    // for (auto& entry: call_acc) {
-    //     float temp = entry.second / call_vol_aggs[entry.first];
-    //     entry.second = temp;
-    //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
-    // }
+    VisHandle visHandle(aggs);
+    visHandle.drawOverall(underlying, date);
 
-    // std::cout << "PUTS:\n";
-    // for (auto& entry: put_acc) {
-    //     float temp = entry.second / put_vol_aggs[entry.first];
-    //     entry.second = temp;
-    //     std::cout << epoch_to_timestamp(entry.first) << ": " << temp << "\n";
-    // }
-
-
-    std::map<long long, float> spx_price = get_price(date);
-    const auto& [timestamps, calls, puts] = calculate_aggregates(underlying, strike, range, date, pool);
-
-    std::vector<double> call_vwas, put_vwas, spot;
-    for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
-
-
-
-    std::vector<double> x(timestamps.size());
+    /*
+    std::vector<double> x(aggs.timestamps.size());
     std::iota(x.begin(), x.end(), 1);
 
     auto f = matplot::figure(true);
     f->title("SPX " + date);
     matplot::hold(matplot::on);
-    auto l_call = matplot::plot(x, calls, "-g")->line_width(2);
-    auto l_put = matplot::plot(x, puts, "-r")->line_width(2);
-    auto l_spot = matplot::plot(x, spot)->line_width(1.5);
+    auto l_call = matplot::plot(x, aggs.calls, "-g")->line_width(2);
+    auto l_put = matplot::plot(x, aggs.puts, "-r")->line_width(2);
+    auto l_spot = matplot::plot(x, aggs.spot)->line_width(1.5);
 
-    auto [m_call, b_call] = linear_regression(calls);
-    auto [m_put, b_put] = linear_regression(puts);
+    auto [m_call, b_call] = linear_regression(aggs.calls);
+    auto [m_put, b_put] = linear_regression(aggs.puts);
 
     std::vector<double> y_call;
     y_call.reserve(x.size());
@@ -106,7 +85,7 @@ int main() {
     auto put_regression = matplot::plot(x, y_put, "--")->line_width(1).color("red");
 
     f->draw();
-
+    */
 
     /* std::filesystem::create_directory("frames");
     size_t count = 0;
@@ -148,7 +127,7 @@ int main() {
 
     // matplot::xticks(matplot::iota(1, 6, 78));
     // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});
-    matplot::show();
+    // matplot::show();
 
     return 0;
 }
