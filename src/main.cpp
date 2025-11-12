@@ -35,6 +35,7 @@ int main() {
 
     VisHandle visHandle(aggs);
     visHandle.drawOverall(underlying, date);
+    // visHandle.drawStepped(underlying, date, 250);
 
     /* std::filesystem::create_directory("frames");
     size_t count = 0;
