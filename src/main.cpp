@@ -22,27 +22,6 @@ std::string epoch_to_timestamp(long long epoch) {
     return std::string(buffer);
 }
 
-// std::pair<double, double> linear_regression(const std::vector<double>& y) {
-//     if (y.size() < 2) return {0.0, 0.0};
-//     std::vector<double> x(y.size());
-//     std::iota(x.begin(), x.end(), 1);
-
-//     double n = static_cast<double>(y.size());
-//     double sum_x = std::accumulate(x.begin(), x.end(), 0.0);
-//     double sum_y = std::accumulate(y.begin(), y.end(), 0.0);
-//     double sum_xy = 0.0, sum_x2 = 0.0;
-
-//     for (size_t i = 0; i < x.size(); ++i) {
-//         sum_xy += x[i] * y[i];
-//         sum_x2 += x[i] * x[i];
-//     }
-
-//     double m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
-//     double b = (sum_y - m * sum_x) / n;
-
-//     return {m, b};
-// }
-
 int main() {
     const size_t thread_count = 30;
     ThreadPool pool(thread_count);
@@ -56,36 +35,6 @@ int main() {
 
     VisHandle visHandle(aggs);
     visHandle.drawOverall(underlying, date);
-
-    /*
-    std::vector<double> x(aggs.timestamps.size());
-    std::iota(x.begin(), x.end(), 1);
-
-    auto f = matplot::figure(true);
-    f->title("SPX " + date);
-    matplot::hold(matplot::on);
-    auto l_call = matplot::plot(x, aggs.calls, "-g")->line_width(2);
-    auto l_put = matplot::plot(x, aggs.puts, "-r")->line_width(2);
-    auto l_spot = matplot::plot(x, aggs.spot)->line_width(1.5);
-
-    auto [m_call, b_call] = linear_regression(aggs.calls);
-    auto [m_put, b_put] = linear_regression(aggs.puts);
-
-    std::vector<double> y_call;
-    y_call.reserve(x.size());
-    std::vector<double> y_put;
-    y_put.reserve(x.size());
-
-    for (double xi: x) {
-        y_call.push_back(m_call * xi + b_call);
-        y_put.push_back(m_put * xi + b_put);
-    }
-
-    auto call_regression = matplot::plot(x, y_call, "--")->line_width(1).color("green");
-    auto put_regression = matplot::plot(x, y_put, "--")->line_width(1).color("red");
-
-    f->draw();
-    */
 
     /* std::filesystem::create_directory("frames");
     size_t count = 0;
