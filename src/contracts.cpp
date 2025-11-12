@@ -1,9 +1,9 @@
 #include "contracts.h"
 #include "HttpUtils.h"
+#include "cache_utils.h"
 #include "json.hpp"
 #include <iostream>
 #include <sstream>
-#include "cache_utils.h"
 
 float get_open_price(const std::string& date) {
     std::ostringstream ss;

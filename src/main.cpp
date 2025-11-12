@@ -1,15 +1,6 @@
-#include <iostream>
 #include "contracts.h"
-#include "HttpUtils.h"
 #include "thread_pool.h"
-#include <cstdlib>
-#include <algorithm>
-#include <chrono>
-#include <iomanip>
-#include <filesystem>
-#include <thread>
-#include <ctime>
-#include <matplot/matplot.h>
+#include "HttpUtils.h"
 #include "VisHandle.h"
 
 std::string epoch_to_timestamp(long long epoch) {
