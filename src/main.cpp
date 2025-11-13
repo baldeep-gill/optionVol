@@ -25,46 +25,8 @@ int main() {
     DataAggregates aggs = calculate_aggregates(underlying, strike, range, date, pool);
 
     VisHandle visHandle(aggs);
-    visHandle.drawOverall(underlying, date);
-    // visHandle.drawStepped(underlying, date, 250);
-
-    /* std::filesystem::create_directory("frames");
-    size_t count = 0;
-    for (auto& [ts, acc]: call_acc) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        if (call_vol_aggs[ts] > 0) {
-            call_vwas.push_back(acc / call_vol_aggs[ts]);
-            put_vwas.push_back(put_acc.count(ts) && put_vol_aggs[ts] > 0 ? put_acc[ts] / put_vol_aggs[ts] : NAN);
-            spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
-        }
-
-        l_call->y_data(call_vwas).line_width(2);
-        l_put->y_data(put_vwas).line_width(2);
-        l_spot->y_data(spot).line_width(1.5);
-
-        auto [m_call, b_call] = linear_regression(call_vwas);
-        auto [m_put, b_put] = linear_regression(put_vwas);
-        
-        std::vector<double> y_call;
-        y_call.reserve(x.size());
-        std::vector<double> y_put;
-        y_put.reserve(x.size());
-
-        for (double xi: x) {
-            y_call.push_back(m_call * xi + b_call);
-            y_put.push_back(m_put * xi + b_put);
-        }
-
-        call_regression->y_data(y_call).x_data(x).color("green").line_width(1);
-        put_regression->y_data(y_put).x_data(x).color("red").line_width(1);
-
-        f->draw();
-
-        std::ostringstream filename;
-        filename << "frames/frame_" << std::setw(3) << std::setfill('0') << count << ".png";
-        matplot::save(filename.str());
-        count++;
-    } */
+    // visHandle.drawOverall(underlying, date);
+    visHandle.drawStepped(underlying, date, 250, true);
 
     // matplot::xticks(matplot::iota(1, 6, 78));
     // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});

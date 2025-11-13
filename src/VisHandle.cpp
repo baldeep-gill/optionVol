@@ -1,5 +1,6 @@
 #include "VisHandle.h"
 #include <chrono>
+#include <filesystem>
 
 std::pair<double, double> VisHandle::linear_regression(const std::vector<double>& y) {
     if (y.size() < 2) return {0.0, 0.0};
@@ -26,7 +27,7 @@ void VisHandle::updateData(DataAggregates aggs) {
     VisHandle aggregates = aggs;
 }
 
-void VisHandle::drawChartOnce(std::vector<long long> timestamps, std::vector<double> calls, std::vector<double> puts, std::vector<double> spot, std::vector<double> fit_call, std::vector<double> fit_put) {
+void VisHandle::drawChartOnce(std::vector<long long>& timestamps, std::vector<double>& calls, std::vector<double>& puts, std::vector<double>& spot, std::vector<double>& fit_call, std::vector<double>& fit_put) {
     
     VisHandle::l_call->y_data(calls).line_width(2);
 
@@ -73,7 +74,7 @@ void VisHandle::drawOverall(std::string underlying, std::string date) {
     matplot::show();
 }
 
-void VisHandle::drawStepped(std::string underlying, std::string date, size_t interval) {
+void VisHandle::drawStepped(std::string underlying, std::string date, size_t interval, bool save_frames) {
     size_t size = VisHandle::aggregates.timestamps.size();
     std::vector<long long> timestamps;
     std::vector<double> calls, puts, spot;
@@ -89,6 +90,10 @@ void VisHandle::drawStepped(std::string underlying, std::string date, size_t int
 
     VisHandle::call_regression = matplot::plot(x, calls, "--");
     VisHandle::put_regression = matplot::plot(x, puts, "--");
+
+    if (save_frames && !std::filesystem::exists("frames")) {
+        std::filesystem::create_directory("frames");
+    }
 
     for (size_t i = 0; i < size; ++i) {
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
@@ -113,6 +118,12 @@ void VisHandle::drawStepped(std::string underlying, std::string date, size_t int
         }
 
         VisHandle::drawChartOnce(timestamps, calls, puts, spot, y_call, y_put);
+
+        if (save_frames) {
+            std::ostringstream filename;
+            filename << "frames/frame" << std::setw(3) << std::setfill('0') << i << ".png";
+            matplot::save(filename.str());
+        }
     }
 
     matplot::show();
