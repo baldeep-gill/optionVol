@@ -21,6 +21,12 @@ std::optional<std::string> read_cache(const std::string& path) {
 }
 
 void write_cache(const std::string& path, const std::string& data) {
+    std::string cache_path = fs::current_path().parent_path().string() + "/cache";
+    if (!fs::exists(cache_path)) {
+        std::cout << "Creating path: " << cache_path << "\n";
+        fs::create_directory(fs::current_path().parent_path().string() + "/cache");
+    }
+
     std::ofstream file(path, std::ios::trunc);
     if (!file.is_open()) {
         std::cerr << "Failed to write file: " << path << "\n";
