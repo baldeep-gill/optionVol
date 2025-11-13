@@ -52,7 +52,7 @@ std::map<long long, float> DataHandler::get_price(const std::string& date) {
             return price;
         }
 
-        write_cache(cache_path, response);
+        write_cache(cache_path, response, DataHandler::threadPool);
     }
 
     nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
@@ -137,7 +137,7 @@ std::vector<VolumePoint> DataHandler::get_volume(const std::string& ticker, cons
             return volumes;
         }
 
-        write_cache(cache_path, response);
+        write_cache(cache_path, response, DataHandler::threadPool);
     }
 
     nlohmann::json data = nlohmann::json::parse(response, nullptr, false);
@@ -290,7 +290,7 @@ DataAggregates DataHandler::calculate_aggregates(const std::string& underlying, 
         j["calls"] = call_vwas;
         j["puts"] = put_vwas;
 
-        write_cache(cache_path, j.dump());
+        write_cache(cache_path, j.dump(), DataHandler::threadPool);
     }
 
     auto stop = std::chrono::high_resolution_clock::now();

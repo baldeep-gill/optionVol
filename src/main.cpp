@@ -26,8 +26,8 @@ int main() {
     DataAggregates aggs = dataHandler.calculate_aggregates(underlying, strike, range, date);
 
     VisHandle visHandle(aggs);
-    // visHandle.drawOverall(underlying, date);
-    visHandle.drawStepped(underlying, date, 250, false);
+    visHandle.drawOverall(underlying, date);
+    // visHandle.drawStepped(underlying, date, 250, false);
 
     // matplot::xticks(matplot::iota(1, 6, 78));
     // matplot::xticklabels({"09:35","10:05","10:35","11:05","11:35","12:05","12:35","13:05","13:35","14:05","14:35","15:05","15:35"});

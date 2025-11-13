@@ -20,21 +20,23 @@ std::optional<std::string> read_cache(const std::string& path) {
     return content;
 }
 
-void write_cache(const std::string& path, const std::string& data) {
+void write_cache(const std::string& path, const std::string& data, ThreadPool& pool) {
     std::string cache_path = fs::current_path().parent_path().string() + "/cache";
     if (!fs::exists(cache_path)) {
         std::cout << "Creating path: " << cache_path << "\n";
         fs::create_directory(fs::current_path().parent_path().string() + "/cache");
     }
 
-    std::ofstream file(path, std::ios::trunc);
-    if (!file.is_open()) {
-        std::cerr << "Failed to write file: " << path << "\n";
-        return;
-    }
+    pool.enqueue([path, data] {
+        std::ofstream file(path, std::ios::trunc);
+        if (!file.is_open()) {
+            std::cerr << "Failed to write file: " << path << "\n";
+            return;
+        }
 
-    file << data;
-    file.close();
+        file << data;
+        file.close();
+    });
 }
 
 std::string generate_filename(const std::string& prefix, const std::string& name) {
