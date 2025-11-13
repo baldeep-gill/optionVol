@@ -2,6 +2,7 @@
 #include "thread_pool.h"
 #include "HttpUtils.h"
 #include "VisHandle.h"
+#include "DataHandler.h"
 
 std::string epoch_to_timestamp(long long epoch) {
     epoch -= 5 * 3600 * 1000;
@@ -15,14 +16,14 @@ std::string epoch_to_timestamp(long long epoch) {
 
 int main() {
     const size_t thread_count = 30;
-    ThreadPool pool(thread_count);
+    static DataHandler dataHandler(thread_count);
 
     std::string underlying = "SPX";
     std::string date = "2025-10-22";
-    float strike = get_open_price(date);
+    float strike = dataHandler.get_open_price(date);
     float range = 0.15;
 
-    DataAggregates aggs = calculate_aggregates(underlying, strike, range, date, pool);
+    DataAggregates aggs = dataHandler.calculate_aggregates(underlying, strike, range, date);
 
     VisHandle visHandle(aggs);
     // visHandle.drawOverall(underlying, date);

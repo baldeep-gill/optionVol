@@ -8,10 +8,10 @@ include_directories(include)
 
 set(SOURCES
     src/main.cpp
-    src/contracts.cpp
     src/cache_utils.cpp
     src/HttpUtils.cpp
     src/VisHandle.cpp
+    src/DataHandler.cpp
 )
 
 add_executable(optionVol ${SOURCES})

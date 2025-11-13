@@ -1,3 +1,4 @@
+#include "DataHandler.h"
 #include "contracts.h"
 #include "HttpUtils.h"
 #include "cache_utils.h"
@@ -5,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-float get_open_price(const std::string& date) {
+float DataHandler::get_open_price(const std::string& date) {
     std::ostringstream ss;
     ss << "https://api.massive.com/v2/aggs/ticker/I:SPX/range/1/day/" << date << "/" << date << "?sort=asc";
     std::string url = ss.str();
@@ -32,7 +33,7 @@ float get_open_price(const std::string& date) {
     return 0.0;
 }
 
-std::map<long long, float> get_price(const std::string& date) {
+std::map<long long, float> DataHandler::get_price(const std::string& date) {
     std::map<long long, float> price;
     std::string cache_path = generate_filename("price", date);
     std::string response;
@@ -69,7 +70,7 @@ std::map<long long, float> get_price(const std::string& date) {
     return price;
 }
 
-std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date) {
+std::vector<Contract> DataHandler::get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date) {
     std::vector<Contract> contracts;
 
     std::ostringstream ss;
@@ -117,7 +118,7 @@ std::vector<Contract> get_contracts(const std::string& underlying, const float& 
     return contracts;
 }
 
-std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string& date) {
+std::vector<VolumePoint> DataHandler::get_volume(const std::string& ticker, const std::string& date) {
     std::vector<VolumePoint> volumes;
     std::string cache_path = generate_filename("contract", ticker);
     std::string response;
@@ -159,15 +160,15 @@ std::vector<VolumePoint> get_volume(const std::string& ticker, const std::string
     return volumes;
 }
 
-std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<Contract>& contracts, const std::string& date) {
+std::vector<ContractVolumes> DataHandler::get_volume_par(const std::vector<Contract>& contracts, const std::string& date) {
     std::vector<std::future<ContractVolumes>> volume_futures;
 
     for (const auto& contract: contracts) {
-        volume_futures.emplace_back(pool.enqueue([contract, date] {
+        volume_futures.emplace_back(DataHandler::threadPool.enqueue([this, contract, date] {
             try {
                 ContractVolumes cv;
                 cv.strike = contract.strike;
-                cv.slices = get_volume(contract.ticker, date);
+                cv.slices = DataHandler::get_volume(contract.ticker, date);
                 return cv;
             } catch (...) {
                 return ContractVolumes{ contract.strike, {} };
@@ -186,7 +187,7 @@ std::vector<ContractVolumes> get_volume_par(ThreadPool& pool, const std::vector<
     return volumes;
 }
 
-DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date, ThreadPool& pool) {
+DataAggregates DataHandler::calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date) {
     DataAggregates agg;
     std::vector<long long> timestamps;
     std::vector<double> spot;
@@ -233,11 +234,11 @@ DataAggregates calculate_aggregates(const std::string& underlying, const float& 
             }
         }
     } else {
-        std::vector<Contract> call_contracts = get_contracts(underlying, strike, range, "call", date);
-        std::vector<Contract> put_contracts = get_contracts(underlying, strike, range, "put", date);    
+        std::vector<Contract> call_contracts = DataHandler::get_contracts(underlying, strike, range, "call", date);
+        std::vector<Contract> put_contracts = DataHandler::get_contracts(underlying, strike, range, "put", date);    
 
-        std::vector<ContractVolumes> call_volumes = get_volume_par(pool, call_contracts, date);
-        std::vector<ContractVolumes> put_volumes = get_volume_par(pool, put_contracts, date);
+        std::vector<ContractVolumes> call_volumes = DataHandler::get_volume_par(call_contracts, date);
+        std::vector<ContractVolumes> put_volumes = DataHandler::get_volume_par(put_contracts, date);
 
         std::cout << "Fetched volumes for " << call_volumes.size() + put_volumes.size() << " contracts.\n";
 
@@ -280,7 +281,7 @@ DataAggregates calculate_aggregates(const std::string& underlying, const float& 
         }
 
 
-        std::map<long long, float> spx_price = get_price(date);
+        std::map<long long, float> spx_price = DataHandler::get_price(date);
         for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
 
         nlohmann::json j;

@@ -1,6 +1,7 @@
 #include "VisHandle.h"
 #include <chrono>
 #include <filesystem>
+#include <thread>
 
 std::pair<double, double> VisHandle::linear_regression(const std::vector<double>& y) {
     if (y.size() < 2) return {0.0, 0.0};
