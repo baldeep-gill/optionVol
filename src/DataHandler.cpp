@@ -263,6 +263,7 @@ DataAggregates DataHandler::calculate_aggregates(const std::string& underlying, 
         }
 
         
+        std::map<long long, float> spx_price = DataHandler::get_price(date);
 
         for (auto& [ts, acc]: call_accumulator) {
             timestamps.push_back(ts);
@@ -278,11 +279,9 @@ DataAggregates DataHandler::calculate_aggregates(const std::string& underlying, 
                     ? put_accumulator[ts] / put_vol_aggregates[ts]
                     : 0
             );
+
+            spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
         }
-
-
-        std::map<long long, float> spx_price = DataHandler::get_price(date);
-        for (auto& ts: timestamps) spot.push_back(spx_price.count(ts) ? spx_price[ts] : NAN);
 
         nlohmann::json j;
         j["timestamps"] = timestamps;

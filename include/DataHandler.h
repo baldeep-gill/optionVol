@@ -11,7 +11,7 @@ class DataHandler {
         float get_open_price(const std::string& date);
         DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date);
         
-        private:
+    private:
         ThreadPool threadPool;
         std::map<long long, float> get_price(const std::string& date);
         std::vector<Contract> get_contracts(const std::string& underlying, const float& strike, const float& range, const std::string& type, const std::string& date);
