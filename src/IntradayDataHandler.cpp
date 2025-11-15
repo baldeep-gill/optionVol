@@ -1,4 +1,4 @@
-#include "IntradayDataHander.h"
+#include "IntradayDataHandler.h"
 #include "HttpUtils.h"
 #include "json.hpp"
 #include <chrono>

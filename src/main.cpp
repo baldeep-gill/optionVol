@@ -3,6 +3,7 @@
 #include "HttpUtils.h"
 #include "VisHandle.h"
 #include "DataHandler.h"
+#include "IntradayDataHandler.h"
 
 std::string epoch_to_timestamp(long long epoch) {
     epoch -= 5 * 3600 * 1000;
@@ -17,6 +18,7 @@ std::string epoch_to_timestamp(long long epoch) {
 int main() {
     const size_t thread_count = 30;
     static DataHandler dataHandler(thread_count);
+    static IntradayDataHandler intraDataHandler;
 
     std::string underlying = "SPX";
     std::string date = "2025-10-22";
