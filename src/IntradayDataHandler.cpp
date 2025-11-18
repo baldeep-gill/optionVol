@@ -11,6 +11,8 @@ void IntradayDataHandler::do_work(const std::string& underlying, const float& st
 
         std::cout << "Fetched new data. Total size: " << IntradayDataHandler::aggregates.timestamps.size() << "\n";
 
+        IntradayDataHandler::visHandle.drawOverall(underlying, IntradayDataHandler::date);
+
         std::this_thread::sleep_for(std::chrono::minutes(5));
     }
 }
@@ -104,6 +106,8 @@ void IntradayDataHandler::update_aggregates(DataAggregates&& aggs) {
     aggs.calls.clear();
     aggs.puts.clear();
     aggs.spot.clear();
+
+    IntradayDataHandler::visHandle.updateData(IntradayDataHandler::aggregates);
 }
 
 void IntradayDataHandler::update_last_fetch(long long last) {

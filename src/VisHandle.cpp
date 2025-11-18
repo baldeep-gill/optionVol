@@ -25,7 +25,7 @@ std::pair<double, double> VisHandle::linear_regression(const std::vector<double>
 }
 
 void VisHandle::updateData(DataAggregates aggs) {
-    VisHandle aggregates = aggs;
+    VisHandle::aggregates = aggs;
 }
 
 void VisHandle::drawChartOnce(std::vector<long long>& timestamps, std::vector<double>& calls, std::vector<double>& puts, std::vector<double>& spot, std::vector<double>& fit_call, std::vector<double>& fit_put) {
@@ -72,7 +72,6 @@ void VisHandle::drawOverall(std::string underlying, std::string date) {
 
     VisHandle::drawChartOnce(VisHandle::aggregates.timestamps, VisHandle::aggregates.calls, VisHandle::aggregates.puts, VisHandle::aggregates.spot, y_call, y_put);
 
-    matplot::show();
 }
 
 void VisHandle::drawStepped(std::string underlying, std::string date, size_t interval, bool save_frames) {

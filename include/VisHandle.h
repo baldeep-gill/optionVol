@@ -4,7 +4,7 @@
 
 class VisHandle {
     public:
-        VisHandle(DataAggregates aggs);
+        VisHandle();
         void updateData(DataAggregates aggs);
         void drawOverall(std::string underlying, std::string date);
         void drawStepped(std::string underlying, std::string date, size_t interval, bool save_frames);
@@ -17,8 +17,7 @@ class VisHandle {
         std::pair<double, double> linear_regression(const std::vector<double>& y);
 };
 
-inline VisHandle::VisHandle(DataAggregates aggs) {
-    VisHandle::aggregates = aggs;
+inline VisHandle::VisHandle() {
     VisHandle::figure = matplot::figure(true);
 
     VisHandle::figure->size(800, 800);

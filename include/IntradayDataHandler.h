@@ -1,5 +1,6 @@
 #pragma once
 #include "DataHandler.h"
+#include "VisHandle.h"
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -8,7 +9,7 @@
 
 class IntradayDataHandler : public DataHandler {
     public:
-        IntradayDataHandler() : DataHandler(30) {
+        IntradayDataHandler() : DataHandler(30), visHandle() {
             auto now = std::chrono::system_clock::now();
             std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
             std::tm now_tm;
@@ -36,6 +37,8 @@ class IntradayDataHandler : public DataHandler {
         std::string date;
         long long last_fetch;
         DataAggregates aggregates;
+        VisHandle visHandle;
+
         void update_aggregates(DataAggregates&& aggs);
         void update_last_fetch(long long last);
         std::map<long long, float> get_price();
