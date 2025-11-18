@@ -25,10 +25,12 @@ int main() {
     float strike = dataHandler.get_open_price(date);
     float range = 0.15;
 
-    DataAggregates aggs = dataHandler.calculate_aggregates(underlying, strike, range, date);
+    intraDataHandler.do_work(underlying, strike, range);
 
-    VisHandle visHandle(aggs);
-    visHandle.drawOverall(underlying, date);
+    // DataAggregates aggs = dataHandler.calculate_aggregates(underlying, strike, range, date);
+
+    // VisHandle visHandle(aggs);
+    // visHandle.drawOverall(underlying, date);
     // visHandle.drawStepped(underlying, date, 250, false);
 
     return 0;

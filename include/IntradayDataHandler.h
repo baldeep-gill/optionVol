@@ -29,12 +29,15 @@ class IntradayDataHandler : public DataHandler {
             date = buffer;
         };
         IntradayDataHandler(size_t thread_count, const std::string& date) : DataHandler(thread_count), date(date) {};
-        DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range);
+        void calculate_aggregates(const std::string& underlying, const float& strike, const float& range);
+        void do_work(const std::string& underlying, const float& strike, const float& range);
         
     private:
         std::string date;
         long long last_fetch;
-        void update_last_fetch();
+        DataAggregates aggregates;
+        void update_aggregates(DataAggregates&& aggs);
+        void update_last_fetch(long long last);
         std::map<long long, float> get_price();
         std::vector<VolumePoint> get_volume(const std::string& ticker);
         std::vector<ContractVolumes> get_volume_par(const std::vector<Contract>& contracts); 
