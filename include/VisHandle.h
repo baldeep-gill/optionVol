@@ -5,9 +5,9 @@
 class VisHandle {
     public:
         VisHandle();
-        void updateData(DataAggregates aggs);
-        void drawOverall(std::string underlying, std::string date);
-        void drawStepped(std::string underlying, std::string date, size_t interval, bool save_frames);
+        void updateData(DataAggregates& aggs);
+        void drawOverall(std::string& underlying, std::string& date);
+        void drawStepped(std::string& underlying, std::string& date, size_t& interval, bool& save_frames);
 
     private:
         DataAggregates aggregates;

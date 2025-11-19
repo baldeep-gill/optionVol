@@ -24,7 +24,7 @@ std::pair<double, double> VisHandle::linear_regression(const std::vector<double>
     return {m, b};
 }
 
-void VisHandle::updateData(DataAggregates aggs) {
+void VisHandle::updateData(DataAggregates& aggs) {
     VisHandle::aggregates = aggs;
 }
 
@@ -42,7 +42,7 @@ void VisHandle::drawChartOnce(std::vector<long long>& timestamps, std::vector<do
     VisHandle::figure->draw();
 }
 
-void VisHandle::drawOverall(std::string underlying, std::string date) {
+void VisHandle::drawOverall(std::string& underlying, std::string& date) {
     size_t size = VisHandle::aggregates.timestamps.size();
     std::vector<double> x(size);
     std::iota(x.begin(), x.end(), 1);
@@ -74,7 +74,7 @@ void VisHandle::drawOverall(std::string underlying, std::string date) {
 
 }
 
-void VisHandle::drawStepped(std::string underlying, std::string date, size_t interval, bool save_frames) {
+void VisHandle::drawStepped(std::string& underlying, std::string& date, size_t& interval, bool& save_frames) {
     size_t size = VisHandle::aggregates.timestamps.size();
     std::vector<long long> timestamps;
     std::vector<double> calls, puts, spot;

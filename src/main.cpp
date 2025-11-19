@@ -22,10 +22,10 @@ int main() {
 
     std::string underlying = "SPX";
     std::string date = "2025-10-22";
-    float strike = dataHandler.get_open_price(date);
+    float strike = intraDataHandler.get_open_price(date);
     float range = 0.15;
 
-    intraDataHandler.do_work(underlying, strike, range);
+    intraDataHandler.do_work();
 
     // DataAggregates aggs = dataHandler.calculate_aggregates(underlying, strike, range, date);
 

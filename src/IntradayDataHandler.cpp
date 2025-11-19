@@ -5,38 +5,29 @@
 #include <iostream>
 #include <sstream>
 
-void IntradayDataHandler::do_work(const std::string& underlying, const float& strike, const float& range) {
+void IntradayDataHandler::do_work() {
     while (true) {
-        IntradayDataHandler::calculate_aggregates(underlying, strike, range);
+        IntradayDataHandler::calculate_aggregates();
 
         std::cout << "Fetched new data. Total size: " << IntradayDataHandler::aggregates.timestamps.size() << "\n";
 
-        IntradayDataHandler::visHandle.drawOverall(underlying, IntradayDataHandler::date);
+        IntradayDataHandler::visHandle.drawOverall(IntradayDataHandler::underlying, IntradayDataHandler::date);
 
         std::this_thread::sleep_for(std::chrono::minutes(5));
     }
 }
 
-void IntradayDataHandler::calculate_aggregates(const std::string& underlying, const float& strike, const float& range) {
+void IntradayDataHandler::calculate_aggregates() {
     DataAggregates agg;
     std::vector<long long> timestamps;
     std::vector<double> spot;
     std::vector<double> call_vwas;
     std::vector<double> put_vwas;
     
-    std::ostringstream ss;
-    ss << underlying << "_" << strike << "_" << range << "_" << date;
-    std::string response;
-    
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now(); 
 
-
-    // TODO: These only need to be called once per day
-    std::vector<Contract> call_contracts = DataHandler::get_contracts(underlying, strike, range, "call", date);
-    std::vector<Contract> put_contracts = DataHandler::get_contracts(underlying, strike, range, "put", date);    
-
-    std::vector<ContractVolumes> call_volumes = IntradayDataHandler::get_volume_par(call_contracts);
-    std::vector<ContractVolumes> put_volumes = IntradayDataHandler::get_volume_par(put_contracts);
+    std::vector<ContractVolumes> call_volumes = IntradayDataHandler::get_volume_par(IntradayDataHandler::call_contracts);
+    std::vector<ContractVolumes> put_volumes = IntradayDataHandler::get_volume_par(IntradayDataHandler::put_contracts);
     
     std::map<long long, float> spx_price = IntradayDataHandler::get_price();
     
@@ -110,11 +101,11 @@ void IntradayDataHandler::update_aggregates(DataAggregates&& aggs) {
     IntradayDataHandler::visHandle.updateData(IntradayDataHandler::aggregates);
 }
 
-void IntradayDataHandler::update_last_fetch(long long last) {
+void IntradayDataHandler::update_last_fetch(long long& last) {
     // auto now = std::chrono::system_clock::now();
     // auto epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 
-    last_fetch = last + (5 * 60 * 1000);
+    IntradayDataHandler::last_fetch = last + (5 * 60 * 1000);
 }
 
 std::map<long long, float> IntradayDataHandler::get_price() {
