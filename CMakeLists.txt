@@ -12,6 +12,7 @@ set(SOURCES
     src/HttpUtils.cpp
     src/VisHandle.cpp
     src/DataHandler.cpp
+    src/IntradayDataHandler.cpp
 )
 
 add_executable(optionVol ${SOURCES})
