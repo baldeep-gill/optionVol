@@ -6,12 +6,37 @@
 #include <sstream>
 
 void IntradayDataHandler::do_work() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm;
+
+    localtime_r(&now_time_t, &now_tm);
+
+    if (now_tm.tm_hour <= 14 && now_tm.tm_min < 35) {
+        std::cout << "Waiting for market open...\n";
+
+        std::time_t tt;
+        now_tm.tm_hour = 14;
+        now_tm.tm_min = 35;
+        now_tm.tm_sec = 1;
+        tt = mktime(&now_tm);
+
+        auto t = std::chrono::system_clock::from_time_t(tt);
+        now = std::chrono::system_clock::now();
+        auto t2 = t - now;
+
+        std::cout << t2.count() << "\n";
+        std::this_thread::sleep_for(t - now);
+    }
+
+    visHandle.init_vis();
+
     while (true) {
         IntradayDataHandler::calculate_aggregates();
 
         std::cout << "Fetched new data. Total size: " << IntradayDataHandler::aggregates.timestamps.size() << "\n";
 
-        IntradayDataHandler::visHandle.drawOverall(IntradayDataHandler::underlying, IntradayDataHandler::date);
+        // IntradayDataHandler::visHandle.drawOverall(IntradayDataHandler::underlying, IntradayDataHandler::date);
 
         std::this_thread::sleep_for(std::chrono::minutes(5));
     }
@@ -82,7 +107,7 @@ void IntradayDataHandler::calculate_aggregates() {
     agg.spot = spot;
     agg.calls = call_vwas;
     agg.puts = put_vwas;
-    
+
     IntradayDataHandler::update_last_fetch(agg.timestamps.back());
     IntradayDataHandler::update_aggregates(std::move(agg));
 }
@@ -145,7 +170,7 @@ std::vector<VolumePoint> IntradayDataHandler::get_volume(const std::string& tick
     std::string response;
 
     std::ostringstream ss;
-    ss << "https://api.massive.com/v2/aggs/ticker/" << ticker << "/range/5/minute/" << last_fetch << "/" << IntradayDataHandler::date << "?adjusted=true&sort=asc";
+    ss << "https://api.massive.com/v2/aggs/ticker/" << ticker << "/range/5/minute/" << last_fetch << "/" << IntradayDataHandler::date << "?adjusted=true&sort=asc&limit=50000";
     std::string url = ss.str();
 
     response = HttpUtils::http_get(url);
@@ -195,7 +220,6 @@ std::vector<ContractVolumes> IntradayDataHandler::get_volume_par(const std::vect
 
     for (auto& f: volume_futures) {
         volumes.push_back(f.get());
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
     return volumes;

@@ -8,11 +8,13 @@ class VisHandle {
         void updateData(DataAggregates& aggs);
         void drawOverall(std::string& underlying, std::string& date);
         void drawStepped(std::string& underlying, std::string& date, size_t& interval, bool& save_frames);
+        void init_vis();
 
     private:
         DataAggregates aggregates;
         matplot::figure_handle figure;
         matplot::line_handle l_call, l_put, l_spot, call_regression, put_regression;
+        std::vector<double> x;
         void drawChartOnce(std::vector<long long>& timestamps, std::vector<double>& calls, std::vector<double>& puts, std::vector<double>& spot, std::vector<double>& fit_call, std::vector<double>& fit_put);
         std::pair<double, double> linear_regression(const std::vector<double>& y);
 };
@@ -21,6 +23,10 @@ inline VisHandle::VisHandle() {
     VisHandle::figure = matplot::figure(true);
 
     VisHandle::figure->size(800, 800);
+
+    for (int i = 1; i < 79; i++) {
+        x.push_back(static_cast<double>(i));
+    }
 
     matplot::xticks(matplot::iota(0, 6, 78));
     matplot::xticklabels({"09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30", "16:00"});

@@ -22,7 +22,7 @@ class IntradayDataHandler : public DataHandler {
             
             // Set last_fetch to midnight (start of day)
             last_fetch = mktime(&now_tm);
-            
+
             // Get today's date
             char buffer[std::size("YYYY-MM-DD")];
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", &now_tm);

@@ -23,7 +23,10 @@ std::string HttpUtils::http_get(const std::string& url) {
     curl_easy_setopt(curl, CURLOPT_URL, final_url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1000L);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 15L);
 
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) std::cerr << "CURL error (" << url << "): " << curl_easy_strerror(res) << "\n";

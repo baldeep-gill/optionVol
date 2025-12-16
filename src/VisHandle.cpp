@@ -24,8 +24,38 @@ std::pair<double, double> VisHandle::linear_regression(const std::vector<double>
     return {m, b};
 }
 
+void VisHandle::init_vis() {
+    matplot::hold(matplot::on);
+
+    VisHandle::l_call = matplot::plot(x, VisHandle::aggregates.calls, "-g");
+    VisHandle::l_put = matplot::plot(x, VisHandle::aggregates.puts, "-r");
+    VisHandle::l_spot = matplot::plot(x, VisHandle::aggregates.spot);
+
+    VisHandle::call_regression = matplot::plot(x, VisHandle::aggregates.calls, "--");
+    VisHandle::put_regression = matplot::plot(x, VisHandle::aggregates.puts, "--");
+
+}
+
 void VisHandle::updateData(DataAggregates& aggs) {
     VisHandle::aggregates = aggs;
+    
+    size_t size = x.size();
+
+    auto [m_call, b_call] = linear_regression(VisHandle::aggregates.calls);
+    auto [m_put, b_put] = linear_regression(VisHandle::aggregates.puts);
+
+    std::vector<double> y_call;
+    y_call.reserve(size);
+    std::vector<double> y_put;
+    y_put.reserve(size);
+
+    for (double xi: x) {
+        
+        y_call.push_back(m_call * xi + b_call);
+        y_put.push_back(m_put * xi + b_put);
+    }
+
+    VisHandle::drawChartOnce(aggregates.timestamps, aggregates.calls, aggregates.puts, aggregates.spot, y_call, y_put);
 }
 
 void VisHandle::drawChartOnce(std::vector<long long>& timestamps, std::vector<double>& calls, std::vector<double>& puts, std::vector<double>& spot, std::vector<double>& fit_call, std::vector<double>& fit_put) {
