@@ -12,12 +12,12 @@ void IntradayDataHandler::do_work() {
 
     localtime_r(&now_time_t, &now_tm);
 
-    if (now_tm.tm_hour <= 14 && now_tm.tm_min < 35) {
+    if (now_tm.tm_hour < 14 || (now_tm.tm_hour == 14 && now_tm.tm_min < 35)) {
         std::cout << "Waiting for market open...\n";
 
         std::time_t tt;
         now_tm.tm_hour = 14;
-        now_tm.tm_min = 35;
+        now_tm.tm_min = 46;
         now_tm.tm_sec = 1;
         tt = mktime(&now_tm);
 
@@ -25,7 +25,6 @@ void IntradayDataHandler::do_work() {
         now = std::chrono::system_clock::now();
         auto t2 = t - now;
 
-        std::cout << t2.count() << "\n";
         std::this_thread::sleep_for(t - now);
     }
 
