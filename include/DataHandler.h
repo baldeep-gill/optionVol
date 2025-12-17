@@ -7,7 +7,7 @@
 
 class DataHandler {
     public:
-        DataHandler(size_t thread_count) : threadPool(thread_count) {};
+        DataHandler(size_t thread_count) : threadPool{thread_count} {};
         float get_open_price(const std::string& date);
         DataAggregates calculate_aggregates(const std::string& underlying, const float& strike, const float& range, const std::string& date);
         

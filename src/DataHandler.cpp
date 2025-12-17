@@ -75,7 +75,7 @@ std::vector<Contract> DataHandler::get_contracts(const std::string& underlying, 
 
     std::ostringstream ss;
     ss  << "https://api.massive.com/v3/reference/options/contracts?underlying_ticker=" << underlying << "&contract_type=" << type << "&expiration_date=" << date << "&as_of=" << date 
-        << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) << "&order=asc&sort=strike_price&limit=1000";
+        << "&order=asc&limit=1000&sort=strike_price" << "&strike_price.gte=" << (strike * (1 - range)) << "&strike_price.lte=" << (strike * (1 + range)) ;
     std::string url = ss.str();
 
     // std::cout << "URL: " << url << "\n";
